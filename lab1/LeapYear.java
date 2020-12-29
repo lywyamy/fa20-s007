@@ -14,8 +14,9 @@ public class LeapYear {
             return true;
         } else if (year % 4 == 0 && year % 100 != 0) {
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
     private static void checkLeapYear(int year) {
         if (isLeapYear(year)) {
