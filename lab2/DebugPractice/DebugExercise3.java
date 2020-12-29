@@ -8,7 +8,7 @@ public class DebugExercise3 {
             String vendor = in.readString();
             String foodType = in.readString();
             double cost = in.readDouble();
-            int numAvailable = in.readInt();
+            int numAvailable = in.readInt(); //Kroger has a negative number of turnips.
             if (foodType.equals("turnip")) {
                 int newTotal = totalTurnips + numAvailable;
                 totalTurnips = newTotal;
