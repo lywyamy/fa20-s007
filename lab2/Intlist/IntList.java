@@ -112,6 +112,26 @@ public class IntList {
         return newA;
     }
 
+    /** Extra: destructive and recursive */
+    public static IntList dcatenateRec(IntList A, IntList B) {
+        if (A == null) {
+            return B;
+        } else if (A.rest == null) {
+            A.rest = B;
+        } else {
+            A.rest = dcatenateRec(A.rest, B);
+        }
+        return A;
+    }
+
+    /** Extra: non-destructive and recursive */
+    public static IntList catenateRec(IntList A, IntList B) {
+        if (A == null) {
+            return B;
+        }
+        return new IntList(A.first, catenateRec(A.rest, B));
+    }
+
 
     /**
      * DO NOT MODIFY ANYTHING BELOW THIS LINE! Many of the concepts below here
