@@ -94,4 +94,16 @@ public class IntListTest {
          assertEquals(expectedA, A);
          assertEquals(expectedB, B);
      }
+
+     @Test
+    public void testEvenOdd() {
+        IntList A = IntList.of(0, 3, 1, 4, 2, 5);
+        IntList B = IntList.of(1, 2, 3, 4, 5, 6, 7);
+        IntList expectedA = IntList.of(0, 1, 2, 3, 4, 5);
+        IntList expectedB = IntList.of(1, 3, 5, 7, 2, 4, 6);
+        IntList.evenOdd(A);
+        IntList.evenOdd(B);
+        assertEquals(expectedA, A);
+        assertEquals(expectedB, B);
+     }
 }
