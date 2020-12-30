@@ -112,7 +112,7 @@ public class IntList {
         return newA;
     }
 
-    /** Extra1: destructive and recursive */
+    /** Extra: destructive and recursive */
     public static IntList dcatenateRec(IntList A, IntList B) {
         if (A == null) {
             return B;
@@ -124,7 +124,8 @@ public class IntList {
         return A;
     }
 
-    /** Extra2: non-destructive and recursive */
+
+    /** Extra: non-destructive and recursive */
     public static IntList catenateRec(IntList A, IntList B) {
         if (A == null) {
             return B;
