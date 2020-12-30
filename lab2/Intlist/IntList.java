@@ -112,7 +112,7 @@ public class IntList {
         return newA;
     }
 
-    /** Extra: destructive and recursive */
+    /** Extra1: destructive and recursive */
     public static IntList dcatenateRec(IntList A, IntList B) {
         if (A == null) {
             return B;
@@ -124,13 +124,32 @@ public class IntList {
         return A;
     }
 
-    /** Extra: non-destructive and recursive */
+    /** Extra2: non-destructive and recursive */
     public static IntList catenateRec(IntList A, IntList B) {
         if (A == null) {
             return B;
         }
         return new IntList(A.first, catenateRec(A.rest, B));
     }
+
+    /** Exam Prep Discussion 3 Problem 2 */
+    public void skippify() {
+        IntList p = this;
+        int n = 1;
+        while (p != null) {
+            IntList next = p.rest;
+            for (int i = 0; i < n; i++) {
+                if(next != null) {
+                    next = next.rest;
+                }
+                p.rest = next;
+            }
+            n++;
+            p = p.rest;
+        }
+    }
+
+    /** Exam Prep Discussion 3 Problem 3 */
 
 
     /**
