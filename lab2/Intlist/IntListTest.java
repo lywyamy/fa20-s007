@@ -66,4 +66,32 @@ public class IntListTest {
         assertEquals(IntList.of(1, 2, 3), A);
     }
 
+    @Test
+    public void testDcatenateRec() {
+        IntList A = IntList.of(1, 2, 3);
+        IntList B = IntList.of(4, 5, 6);
+        IntList exp = IntList.of(1, 2, 3, 4, 5, 6);
+        assertEquals(exp, IntList.dcatenateRec(A, B));
+        assertEquals(IntList.of(1, 2, 3, 4, 5, 6), A);
+    }
+
+    @Test
+    public void testCatenateRec() {
+        IntList A = IntList.of(1, 2, 3);
+        IntList B = IntList.of(4, 5, 6);
+        IntList exp = IntList.of(1, 2, 3, 4, 5, 6);
+        assertEquals(exp, IntList.catenateRec(A, B));
+        assertEquals(IntList.of(1, 2, 3), A);
+    }
+     @Test
+    public void testSkippify() {
+         IntList A = IntList.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+         IntList B = IntList.of(9, 8, 7, 6, 5, 4, 3, 2, 1);
+         IntList expectedA = IntList.of(1, 3, 6, 10);
+         IntList expectedB = IntList.of(9, 7, 4);
+         A.skippify();
+         B.skippify();
+         assertEquals(expectedA, A);
+         assertEquals(expectedB, B);
+     }
 }
