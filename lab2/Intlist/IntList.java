@@ -150,7 +150,13 @@ public class IntList {
         }
     }
 
-    /** Exam Prep Discussion 3 Problem 3 */
+    /** Exam Prep Discussion 3 Problem 3
+     *  Destructively changes the ordering of a given IntList
+     *  so that even-indexed links precede odd-indexed links. */
+    public static void evenOdd(IntList lst) {
+        
+    }
+
 
 
     /**
