@@ -42,7 +42,7 @@ public class ArrayDeque <T> implements Deque<T> {
      * (1) array is full
      * (2) For arrays of length 16 or more and usage ratio is under 25%.
      *  For smaller arrays, usageRatio can be arbitrarily low.
-      */
+     */
     private void sizeUp() {
         T[] resizeUp = (T[]) new Object[items.length * 2];
         if (isStraightArray()) {
@@ -83,7 +83,6 @@ public class ArrayDeque <T> implements Deque<T> {
      * After adding an item, nextFirstIndex is x decrements by 1.
      * When array[0] is filled, nextFirstIndex is array[length - 1].
      */
-    @Override
     public void addFirst(T item) {
         // If the array is already full, resizing is needed BEFORE adding another item.
         if (size == items.length) {
@@ -103,7 +102,6 @@ public class ArrayDeque <T> implements Deque<T> {
      * After adding an item, nextLastIndex (x + 1) increments by 1.
      * When array[length - 1] is filled, nextLastIndex is array[0].
      */
-    @Override
     public void addLast(T item) {
         // If the array is already full, resizing is needed BEFORE adding another item.
         if (size == items.length) {
@@ -118,8 +116,12 @@ public class ArrayDeque <T> implements Deque<T> {
         size ++;
     }
 
+    /** Returns true if deque is empty, false otherwise. */
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
     /** Returns the number of items in the deque. */
-    @Override
     public int size() {
         return size;
     }
@@ -127,7 +129,6 @@ public class ArrayDeque <T> implements Deque<T> {
     /** Prints the items in the deque from first to last, separated by a space.
      * Once all the items have been printed, print out a new line.
      */
-    @Override
     public void printDeque() {
         if (isStraightArray()) {
             for (int i = 0; i < size; i++) {
@@ -154,7 +155,6 @@ public class ArrayDeque <T> implements Deque<T> {
     /** Removes and returns the item at the front of the deque.
      * If no such item exists, returns null.
      */
-    @Override
     public T removeFirst() {
         // If removing an item results in usage ratio going below 25%, resizing is needed AFTER removal.
         if (isEmpty()) {
@@ -169,7 +169,7 @@ public class ArrayDeque <T> implements Deque<T> {
                 nextFirstIndex = 0;
             }
             size --;
-            if (size < items.length * 0.25) {
+            if (items.length >= 16 && size < items.length * 0.25) {
                 sizeDown();
             }
             return firstItem;
@@ -179,7 +179,6 @@ public class ArrayDeque <T> implements Deque<T> {
     /** Removes and returns the item at the back of the deque.
      * If no such item exists, returns null.
      */
-    @Override
     public T removeLast() {
         // If removing an item results in usage ratio going below 25%, resizing is needed AFTER removal.
         if (isEmpty()) {
@@ -194,7 +193,7 @@ public class ArrayDeque <T> implements Deque<T> {
                 nextLastIndex --;
             }
             size --;
-            if (size < items.length * 0.25) {
+            if (items.length >= 16 && size < items.length * 0.25) {
                 sizeDown();
             }
             return lastItem;
@@ -204,7 +203,6 @@ public class ArrayDeque <T> implements Deque<T> {
     /** Gets the item at the given index.
      * If no such item exists, returns null.
      */
-    @Override
     public T get(int index) {
         if (isEmpty()) {
             return null;
