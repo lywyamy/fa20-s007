@@ -169,7 +169,7 @@ public class ArrayDeque <T> {
                 nextFirstIndex = 0;
             }
             size --;
-            if (size < items.length * 0.25) {
+            if (items.length >= 16 && size < items.length * 0.25) {
                 sizeDown();
             }
             return firstItem;
@@ -193,7 +193,7 @@ public class ArrayDeque <T> {
                 nextLastIndex --;
             }
             size --;
-            if (size < items.length * 0.25) {
+            if (items.length >= 16 && size < items.length * 0.25) {
                 sizeDown();
             }
             return lastItem;

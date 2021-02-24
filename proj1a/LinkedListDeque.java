@@ -53,9 +53,7 @@ public class LinkedListDeque <T> {
 
     /** Returns true if deque is empty, false otherwise. */
     public boolean isEmpty() {
-        if (size == 0) {
-            return true;
-        } return false;
+        return size == 0;
     }
 
     /** Returns the number of items in the deque. */
@@ -123,7 +121,7 @@ public class LinkedListDeque <T> {
         }
 
     /** Helper method on the TNode class level. */
-    public T getNode(TNode p, int index) {
+    private T getNode(TNode p, int index) {
         if (index == 0 ) {
             return p.item;
         } else if (p == sentinel) {
