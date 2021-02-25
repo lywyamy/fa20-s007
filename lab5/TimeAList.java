@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -22,8 +23,19 @@ public class TimeAList {
     }
 
     public static void timeAListConstruction() {
-        // TODO: YOUR CODE HERE
+        AList<Integer> aList = new AList<>();
+        List<Integer> Ns = Arrays.asList(1000, 2000, 4000, 8000, 16000, 32000, 64000);
+        List<Double> times = new ArrayList<>();
+        List<Integer> opCounts = Arrays.asList(1000, 2000, 4000, 8000, 16000, 32000, 64000);
+
+        for (int i = 0; i < Ns.size(); i++) {
+            Stopwatch sw = new Stopwatch();
+            for (int j = 0; j < Ns.get(i); j++) {
+                aList.addLast(2);
+            }
+            double timeInSeconds = sw.elapsedTime();
+            times.add(timeInSeconds);
+        }
+        printTimingTable(Ns, times, opCounts);
     }
-
-
 }
