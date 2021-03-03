@@ -7,7 +7,7 @@
  *  From that file, it
  *
  *    - Reads the grid size N of the percolation system.
- *    - Creates an N-by-N grid of sites (intially all blocked)
+ *    - Creates an N-by-N grid of sites (initially all blocked)
  *    - Reads in a sequence of sites (row i, column j) to open.
  *
  *  After each site is opened, it draws full sites in light blue,
@@ -22,7 +22,7 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 
 public class PercolationVisualizer {
-/*
+
     // delay in miliseconds (controls animation speed)
     private static final int DELAY = 100;
 
@@ -83,5 +83,5 @@ public class PercolationVisualizer {
     public static void main(String[] args) {
         String filename = args[0];
         simulateFromFile(filename);
-    }*/
+    }
 }
