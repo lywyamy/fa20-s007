@@ -1,8 +1,5 @@
 import java.util.Set;
-/* Your implementation BSTMap should implement this interface. To do so,
- * append "implements Map61B<K,V>" to the end of your "public class..."
- * declaration, though you can use other formal type parameters if you'd like.
- */
+
 public interface Map61B<K, V> extends Iterable<K> {
     /** Removes all of the mappings from this map. */
     void clear();
