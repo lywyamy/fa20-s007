@@ -40,6 +40,7 @@ public class TestUnionFind {
         assertEquals(3, uf.findPC(0));
         assertEquals(3, uf.parent(0));
         assertEquals(3, uf.parent(6));
+        //uf.find(11);
     }
 
 }
