@@ -103,12 +103,73 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        V removeValue = get(key, root);
+        root = remove(key, root);
+        return removeValue;
+    }
+
+    private Node remove(K key, Node n) {
+        if (key == null) { throw new IllegalArgumentException(); }
+        if (n == null) { return null; }
+
+        int cmp = key.compareTo(n.key);
+        if (cmp < 0) { n.left = remove(key, n.left); }
+        else if (cmp > 0) {n.right = remove(key, n.right); }
+        else {
+            if (n.left == null) { return n.right; }
+            if (n.right == null) { return n.left; }
+            Node temp = n;
+            n = min(temp.right);
+            n.right = deleteMin(temp.right);
+            n.left = temp.left;
+
+        }
+        n.size = size(n.left) + size(n.right) + 1;
+        return n;
+    }
+
+    // Removes the minimum key with its value from the BST
+    public void deleteMin() {
+        root = deleteMin(root);
+    }
+
+    private Node deleteMin(Node n) {
+        if (n == null) { return null; }
+        if (n.left == null) { return n.right; }
+        else { n.left = deleteMin(n.left); }
+        return n;
+    }
+
+    // Returns the minimum key in the BST
+    public K min() {
+        return min(root).key;
+    }
+
+    private Node min(Node n) {
+        if (n == null) { return null; }
+        if (n.left == null) { return n;}
+        else { return min(n.left); }
+    }
+
+    // Returns the max key in the BST
+    public K max() {
+        return max(root).key;
+    }
+
+    private Node max(Node n) {
+        if (n == null) { return null; }
+        if (n.right == null) { return n; }
+        else { return max(n.right); }
     }
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        V removeValue = get(key);
+        if (value == removeValue) {
+            remove(key);
+            return removeValue;
+        }
+        throw new RuntimeException("The key cannot be removed because the given value doesn't match.");
     }
 
     @Override
