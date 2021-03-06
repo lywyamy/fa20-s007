@@ -154,7 +154,21 @@ public class IntList {
      *  Destructively changes the ordering of a given IntList
      *  so that even-indexed links precede odd-indexed links. */
     public static void evenOdd(IntList lst) {
-        
+        if (lst == null || lst.rest == null) {
+            return;
+        }
+        IntList second = new IntList(100, null);
+        IntList p = lst;
+        IntList ps = second;
+        while (p.rest != null) {
+            ps.rest = new IntList(p.rest.first, null);
+            p.rest = p.rest.rest;
+            if (p.rest != null) {
+                p = p.rest;
+                ps = ps.rest;
+            }
+        }
+        p.rest = second.rest;
     }
 
 
