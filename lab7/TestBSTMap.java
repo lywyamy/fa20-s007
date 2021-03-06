@@ -87,6 +87,7 @@ public class TestBSTMap {
 	    chinchillaHouse.put("Brownie",9);
 	    chinchillaHouse.put("Hangou", 2);
 	    chinchillaHouse.printInOrder();
+	    assertEquals("Amy", chinchillaHouse.min());
     }
 
     public static void main(String[] args) {

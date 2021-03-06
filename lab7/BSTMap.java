@@ -1,5 +1,4 @@
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     private class Node {
@@ -82,23 +81,18 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     private void printInOrder(Node n) {
         if (n == null) { System.out.println(); }
         if (n.left == null && n.right == null) {
-            System.out.println(n.key.toString() + n.value.toString());
+            System.out.println("Key: " + n.key.toString() + " Value: " + n.value.toString());
         } else if (n.left != null && n.right == null) {
             printInOrder(n.left);
-            System.out.println(n.key.toString() + n.value.toString());
+            System.out.println("Key: " + n.key.toString() + " Value: " + n.value.toString());
         } else if (n.left == null && n.right != null) {
-            System.out.println(n.key.toString() + n.value.toString());
+            System.out.println("Key: " + n.key.toString() + " Value: " + n.value.toString());
             printInOrder(n.right);
         } else {
             printInOrder(n.left);
-            System.out.println(n.key.toString() + n.value.toString());
+            System.out.println("Key: " + n.key.toString() + " Value: " + n.value.toString());
             printInOrder(n.right);
         }
-    }
-
-    @Override
-    public Set<K> keySet() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -108,6 +102,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return removeValue;
     }
 
+    // When removing a node with two children, replace it with its predecessor / successor then delete it.
     private Node remove(K key, Node n) {
         if (key == null) { throw new IllegalArgumentException(); }
         if (n == null) { return null; }
@@ -174,7 +169,23 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return keySet().iterator();
+    }
+
+
+    @Override
+    public Set<K> keySet() {
+        Set<K> ks = new HashSet<>();
+        traverse(root, ks);
+        return ks;
+    }
+
+    private Set<K> traverse(Node n, Set<K> ks) {
+        if (n == null) { return null; }
+        traverse(n.left, ks);
+        ks.add(n.key);
+        traverse(n.right, ks);
+        return ks;
     }
 
 }
