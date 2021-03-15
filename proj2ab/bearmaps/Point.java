@@ -1,5 +1,6 @@
 package bearmaps;
 
+/* Please do NOT modify this class. */
 public class Point {
 
     private double x;
