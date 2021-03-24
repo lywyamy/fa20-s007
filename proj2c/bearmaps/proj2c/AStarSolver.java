@@ -1,5 +1,6 @@
 package bearmaps.proj2c;
 
+import bearmaps.proj2ab.ArrayHeapMinPQ;
 import bearmaps.proj2ab.DoubleMapPQ;
 import edu.princeton.cs.algs4.Stopwatch;
 
@@ -32,8 +33,8 @@ public class AStarSolver<Vertex> implements ShortestPathsSolver<Vertex> {
         bestKnownRoute = new HashMap<>();
 
         /* Adds start vertex to the fringe PQ. */
-        //ArrayHeapMinPQ<Vertex> fringe = new ArrayHeapMinPQ<>();
-        DoubleMapPQ<Vertex> fringe = new DoubleMapPQ<>();
+        ArrayHeapMinPQ<Vertex> fringe = new ArrayHeapMinPQ<>();
+        //DoubleMapPQ<Vertex> fringe = new DoubleMapPQ<>();
         fringe.add(start, heuristicDist(start));
         bestKnownDistance.put(start, 0.0);
         bestKnownRoute.put(start, null);

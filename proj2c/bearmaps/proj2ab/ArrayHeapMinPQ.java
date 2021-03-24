@@ -3,7 +3,7 @@ package bearmaps.proj2ab;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-public class ArrayHeapMinPQ<T extends Comparable<T>> implements ExtrinsicMinPQ<T> {
+public class ArrayHeapMinPQ<T> implements ExtrinsicMinPQ<T> {
     public ArrayList<PriorityNode> items;
     public TreeMap<T, Integer> itemIndexMap;
 
