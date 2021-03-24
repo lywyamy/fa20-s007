@@ -5,9 +5,9 @@ package bearmaps.proj2c;
  * Created by hug.
  */
 public class WeightedEdge<Vertex> {
-    private Vertex v;
-    private Vertex w;
-    private double weight;
+    private final Vertex v;
+    private final Vertex w;
+    private final double weight;
 
     public WeightedEdge(Vertex v, Vertex w, double weight) {
         this.v = v;
