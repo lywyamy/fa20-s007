@@ -1,11 +1,13 @@
 package bearmaps.proj2d;
 
+import bearmaps.proj2ab.Point;
+import bearmaps.proj2ab.PointSet;
+import bearmaps.proj2ab.WeirdPointSet;
 import bearmaps.proj2c.streetmap.StreetMapGraph;
 import bearmaps.proj2c.streetmap.Node;
+import edu.princeton.cs.algs4.TrieSET;
 
-import java.util.List;
-import java.util.Map;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * An augmented graph that is more powerful that a standard StreetMapGraph.
@@ -16,10 +18,51 @@ import java.util.LinkedList;
  */
 public class AugmentedStreetMapGraph extends StreetMapGraph {
 
+    private WeirdPointSet wps;
+    private HashMap<Point, Long> pointToID;
+    private TrieSET trieSet;
+    private HashMap<String, HashSet<String>> cleanToFull;
+    private HashMap<String, HashSet<Node>> cleanLocations;
+
     public AugmentedStreetMapGraph(String dbPath) {
         super(dbPath);
-        // You might find it helpful to uncomment the line below:
-        // List<Node> nodes = this.getNodes();
+        List<Node> nodes = this.getNodes();
+        List<Point> reachablePoints = new ArrayList<>();
+        pointToID = new HashMap<>();
+        trieSet = new TrieSET();
+        cleanToFull = new HashMap<>();
+        cleanLocations = new HashMap<>();
+
+        for (Node n : nodes) {
+            Point p = new Point(n.lon(), n.lat());
+            pointToID.put(p, n.id());
+            if (neighbors(n.id()).size() > 0) { reachablePoints.add(p); }
+
+            String fullName = n.name();
+            if (fullName != null) {
+                String cleanedName = cleanString(fullName);
+                trieSet.add(cleanedName);
+
+                if (!cleanToFull.containsKey(cleanedName)) {
+                    HashSet<String> fullNames = new HashSet<>();
+                    fullNames.add(fullName);
+                    cleanToFull.put(cleanedName, fullNames);
+                } else {
+                    HashSet<String> fullNames = cleanToFull.get(cleanedName);
+                    fullNames.add(fullName);
+                }
+
+                if (!cleanLocations.containsKey(cleanedName)) {
+                    HashSet<Node> locations = new HashSet<>();
+                    locations.add(n);
+                    cleanLocations.put(cleanedName, locations);
+                } else {
+                    HashSet<Node> locations = cleanLocations.get(cleanedName);
+                    locations.add(n);
+                }
+            }
+        }
+        wps = new WeirdPointSet(reachablePoints);
     }
 
 
@@ -31,7 +74,8 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * @return The id of the node in the graph closest to the target.
      */
     public long closest(double lon, double lat) {
-        return 0;
+        Point p = wps.nearest(lon, lat);
+        return this.pointToID.get(p);
     }
 
 
@@ -44,7 +88,12 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * cleaned <code>prefix</code>.
      */
     public List<String> getLocationsByPrefix(String prefix) {
-        return new LinkedList<>();
+        String cleanQuery = cleanString(prefix);
+        List<String> suggestedResult = new ArrayList<>();
+        for(String s : trieSet.keysWithPrefix(cleanQuery)) {
+            suggestedResult.addAll(cleanToFull.get(s));
+        }
+        return suggestedResult;
     }
 
     /**
@@ -61,7 +110,19 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * "id" -> Number, The id of the node. <br>
      */
     public List<Map<String, Object>> getLocations(String locationName) {
-        return new LinkedList<>();
+        String cleanQuery = cleanString(locationName);
+        if (!cleanLocations.containsKey(cleanQuery)) { throw new IllegalArgumentException("There is no such a location."); }
+        HashSet<Node> nodes = cleanLocations.get(cleanQuery);
+        List<Map<String, Object>> searchResult = new ArrayList<>();
+        for (Node n : nodes) {
+            Map<String, Object> location = new HashMap<>();
+            location.put("lat", n.lat());
+            location.put("lon", n.lon());
+            location.put("name", n.name());
+            location.put("id", n.id());
+            searchResult.add(location);
+        }
+        return searchResult;
     }
 
 

@@ -17,8 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static bearmaps.proj2d.utils.Constants.SEMANTIC_STREET_GRAPH;
-import static bearmaps.proj2d.utils.Constants.ROUTE_LIST;
+import static bearmaps.proj2d.utils.Constants.*;
 
 /**
  * Handles requests from the web browser for map images. These images
@@ -84,12 +83,143 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      */
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        //System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        //System.out.println(requestParams);
+        /* Translates the requestParams. */
+        double lrlon = requestParams.get("lrlon");
+        double ullon = requestParams.get("ullon");
+        double ullat = requestParams.get("ullat");
+        double lrlat = requestParams.get("lrlat");
+        double width = requestParams.get("w");
+        double LonDPPQueryBox = (lrlon - ullon) / width;
+
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
+
+        /* Corner Case 1: No Coverage.
+         * 1. query box doesn't make sense
+         * 2. query box is completely outside of the root longitude/latitude
+         */
+        if (ullat <= lrlat || ullon >= lrlon) { results = queryFail(); }
+        else if (lrlat >= ROOT_ULLAT || ullat <= ROOT_LRLAT || lrlon <= ROOT_ULLON || ullon >= ROOT_LRLON) { results = queryFail(); }
+
+        /* Corner Case 2: Partial Coverage.
+         * 1. The query box is so zoomed out that it includes the entire dataset.
+         * 2. The user goes to the edge of the map beyond where data is available.
+         * The latter case can be combined into common cases.
+         */
+        else if (LonDPPQueryBox > nthLevelLonDPP(0)) { results = zoomedOutQuery(); }
+
+        else {
+            int n = nthLevel(LonDPPQueryBox);
+            int lonStart = ithLonStart(ullon, n);
+            int lonEnd = ithLonEnd(lrlon, n);
+            int latStart = jthLatStart(ullat, n);
+            int latEnd = jthLatEnd(lrlat, n);
+            int gridSize = latEnd - latStart + 1;
+            int gridLength = lonEnd - lonStart + 1;
+
+            String[][] grid = new String[gridSize][gridLength];
+            for (int j = 0; j < gridSize; j++) {
+                for (int i = 0; i < gridLength; i++) {
+                    grid[j][i] = "d" + n + "_x" + (i + lonStart) + "_y" + (j+ latStart) + ".png";
+                }
+            }
+
+            results.put("render_grid", grid);
+            results.put("raster_ul_lon", ROOT_ULLON + lonStart * lonPerImage(n));
+            results.put("raster_ul_lat", ROOT_ULLAT - latStart * latPerImage(n));
+            results.put("raster_lr_lon", ROOT_ULLON + (lonEnd + 1) * lonPerImage(n));
+            results.put("raster_lr_lat", ROOT_ULLAT - (latEnd + 1) * latPerImage(n));
+            results.put("depth", n);
+            results.put("query_success", true);
+        }
         return results;
+    }
+
+    /* Returns nth level of an image that has the greatest LonDPP
+       that is less than or equal to the LonDPP of the query box. */
+    private int nthLevel(double LonDPPQueryBox) {
+        int deepestLevel = 7;
+        for (int n = 0; n <= deepestLevel; n++) {
+            if (nthLevelLonDPP(n) <= LonDPPQueryBox) { return n; }
+            }
+        return deepestLevel;
+    }
+
+    /**
+     * @return the LonDPP for a given depth level.
+     * @param n nthLevel should be 0 - 7 inclusive.
+     */
+    private double nthLevelLonDPP(int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument to nthLevelLonDPP should be 0 - 7 inclusive."); }
+        /* Base resolution for depth 0 image. */
+        double d0LonDPP = (ROOT_LRLON - ROOT_ULLON) / TILE_SIZE;
+        return d0LonDPP/Math.pow(2, n);
+    }
+
+    /**
+     * @return the number of images per side.
+     * @param n nthLevel should be 0 - 7 inclusive.
+     */
+    private int numOfImagesPerSide(int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument to numOfImagesPerSide should be 0 - 7 inclusive."); }
+        return (int) Math.pow(2, n);
+    }
+
+    /**
+     * @return the longitude per image.
+     * @param n nthLevel should be 0 - 7 inclusive. */
+    private double lonPerImage(int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument to lonPerImage should be 0 - 7 inclusive."); }
+        double totalLon = ROOT_LRLON - ROOT_ULLON;
+        return totalLon / numOfImagesPerSide(n);
+    }
+
+    /**
+     * @return the latitude per image.
+     * @param n nthLevel should be 0 - 7 inclusive. */
+    private double latPerImage(int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument to latPerImage should be 0 - 7 inclusive."); }
+        double totalLat = ROOT_ULLAT - ROOT_LRLAT;
+        return totalLat / numOfImagesPerSide(n);
+    }
+
+    /**
+     * @return the i in dn_xi_yj for the upper-left image.
+     * If the user-requested longitude is less than the ROOT_ULLON, start with the zeroth image.
+     */
+    private int ithLonStart(double ullon, int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument n to ithLonStart should be 0 - 7 inclusive."); }
+        if (ullon < ROOT_ULLON) { return 0; }
+        return (int) Math.floor((ullon - ROOT_ULLON) / lonPerImage(n));
+    }
+
+    /**
+     * @return the j in dn_xi_yj for the upper-left image.
+     * If the user-requested latitude is greater than the ROOT_ULLAT, start with the zeroth image.
+     */
+    private int jthLatStart(double ullat, int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument n to jthLatStart should be 0 - 7 inclusive."); }
+        if (ullat > ROOT_ULLAT) { return 0; }
+        return (int) Math.floor((ROOT_ULLAT - ullat) / latPerImage(n));
+    }
+
+    /**
+     * @return the i in dn_xi_yj for the lower-right image.
+     * If the user-requested longitude is greater than the ROOT_LRLON, end up with last possible image.
+     */
+    private int ithLonEnd(double lrlon, int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument n to ithLonEnd should be 0 - 7 inclusive."); }
+        if (lrlon > ROOT_LRLON) { return numOfImagesPerSide(n) - 1; }
+        return (int) Math.floor((lrlon - ROOT_ULLON) / lonPerImage(n));
+    }
+
+    /**
+     * @return the j in dn_xi_yj for the lower-right image.
+     * If the user-requested latitude is less than the ROOT_ULLAT, end up with last possible image.
+     */
+    private int jthLatEnd(double lrlat, int n) {
+        if (n < 0 || n > 7) { throw new IllegalArgumentException("The argument n to jthLatEnd should be 0 - 7 inclusive."); }
+        if (lrlat < ROOT_LRLAT) { return numOfImagesPerSide(n) - 1; }
+        return (int) Math.floor((ROOT_ULLAT - lrlat) / latPerImage(n));
     }
 
     @Override
@@ -114,6 +244,20 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
         results.put("raster_lr_lat", 0);
         results.put("depth", 0);
         results.put("query_success", false);
+        return results;
+    }
+
+    private Map<String, Object> zoomedOutQuery() {
+        Map<String, Object> results = new HashMap<>();
+        String [][] renderGrid = new String[1][1];
+        renderGrid[0][0] = "d0_x0_y0.png";
+        results.put("render_grid", renderGrid);
+        results.put("raster_ul_lon", ROOT_ULLON);
+        results.put("raster_ul_lat", ROOT_ULLAT);
+        results.put("raster_lr_lon", ROOT_ULLAT);
+        results.put("raster_lr_lat", ROOT_LRLAT);
+        results.put("depth", 0);
+        results.put("query_success", true);
         return results;
     }
 
