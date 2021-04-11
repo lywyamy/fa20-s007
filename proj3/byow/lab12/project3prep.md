@@ -12,14 +12,17 @@ Answer:
 What is the hexagon and what is the tesselation on the Project 3 side?**
 
 Answer:
-
+Rooms and hallways are the hexagons in project 3. Generating the world is like the tesselation the rooms and hallways.
 -----
 **If you were to start working on world generation, what kind of method would you think of writing first? 
-Think back to the lab and the process used to eventually get to tessellating hexagons.**
+Think back to the lab, and the process used to eventually get to tessellating hexagons.**
 
 Answer:
-
+First, the method of calculating the position of each component. Second, the method of creating the components with given parameters.
 -----
 **What distinguishes a hallway from a room? How are they similar?**
 
 Answer:
+A room has only one door, while a hallway may have multiple doorways.
+A room has width and length greater than or equal to 2, while a hallway is one tile wide.
+They are both spaces delimited by tiles.

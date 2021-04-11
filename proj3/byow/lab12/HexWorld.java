@@ -10,7 +10,7 @@ import java.util.Random;
  */
 public class HexWorld {
     private static final int numHexagon = 19;
-    private static final long SEED = 5567;
+    private static final long SEED = 5566;
     private static final Random RANDOM = new Random(SEED);
 
     /* Instance variables for an individual hexagon in the HexWorld. */
@@ -65,7 +65,6 @@ public class HexWorld {
                 hexWorld[k][j] = tile;
             }
         }
-
     }
 
     /* Calculates the width of the HexWorld.
