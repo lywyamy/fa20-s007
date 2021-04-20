@@ -12,12 +12,13 @@ public class StringInputDevice implements InputSource  {
         input = s;
     }
 
+    @Override
     public char getNextKey() {
         char returnChar = input.charAt(index);
         index += 1;
         return returnChar;
     }
-
+    @Override
     public boolean possibleNextInput() {
         return index < input.length();
     }

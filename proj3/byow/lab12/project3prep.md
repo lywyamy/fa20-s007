@@ -23,6 +23,5 @@ First, the method of calculating the position of each component. Second, the met
 **What distinguishes a hallway from a room? How are they similar?**
 
 Answer:
-A room has only one door, while a hallway may have multiple doorways.
 A room has width and length greater than or equal to 2, while a hallway is one tile wide.
 They are both spaces delimited by tiles.
