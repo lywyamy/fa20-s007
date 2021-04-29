@@ -11,8 +11,6 @@ public class Main {
             System.exit(0);
         } else if (args.length == 1) {
             Engine engine = new Engine();
-            engine.ter.initialize(Engine.WIDTH + Engine.xBuffer, Engine.HEIGHT + Engine.yBuffer, Engine.xOff, Engine.yOff);
-            engine.initialize();
             engine.interactWithInputString(args[0]);
             engine.ter.renderFrame(engine.myWorld);
             System.out.println(engine.toString());
