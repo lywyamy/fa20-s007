@@ -4,10 +4,15 @@ import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 import java.util.*;
+import java.util.List;
 
 public class Engine {
-    private static final int WIDTH = 80;
-    private static final int HEIGHT = 30;
+    public static final int WIDTH = 80;
+    public static final int HEIGHT = 30;
+    public static final int xBuffer = 0;
+    public static final int yBuffer = 3;
+    public static final int xOff = 0;
+    public static final int yOff = 0;
     private static final double terminationRatio = 0.5;
     private static final int roomWidthMin = 4;
     private static final int roomWidthMax = 10;
@@ -18,7 +23,7 @@ public class Engine {
     private static final int hallwayHeightMax = 12;
 
     TERenderer ter = new TERenderer();
-    private final TETile[][] myWorld = new TETile[WIDTH][HEIGHT];
+    public final TETile[][] myWorld = new TETile[WIDTH][HEIGHT];
     private int filledArea = 0;
     private double filledRatio;
     private Random rd;
@@ -61,6 +66,7 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+        ter.initialize(WIDTH + xBuffer, HEIGHT + yBuffer, xOff, yOff);
         initialize();
         int seed = getSeed(input);
         this.rd = new Random(seed);
@@ -69,6 +75,10 @@ public class Engine {
             addSpace();
         }
         return myWorld;
+    }
+
+    public void playGame() {
+
     }
 
     /* Steps to add a random space to myWorld:
@@ -544,7 +554,7 @@ public class Engine {
     private int randomInt(int min, int max) { return min + rd.nextInt(max - min + 1); }
 
     /* Initializes myWorld with default NOTHING tiles. */
-    private void initialize() {
+    public void initialize() {
         for (int i = 0; i < WIDTH; i++) {
             for (int j = 0; j < HEIGHT; j++) {
                 myWorld[i][j] = Tileset.NOTHING;
@@ -573,7 +583,7 @@ public class Engine {
 
     public static void main(String[] args) {
         Engine engine = new Engine();
-        engine.ter.initialize(WIDTH, HEIGHT);
+        engine.ter.initialize(WIDTH + xBuffer, HEIGHT + yBuffer, xOff, yOff);
         engine.initialize();
         engine.ter.renderFrame(engine.interactWithInputString("n3722s"));
     }
