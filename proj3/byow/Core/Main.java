@@ -12,11 +12,11 @@ public class Main {
         } else if (args.length == 1) {
             Engine engine = new Engine();
             engine.interactWithInputString(args[0]);
-            engine.ter.renderFrame(engine.myWorld);
-            System.out.println(engine.toString());
+            engine.playGame();
         } else {
             Engine engine = new Engine();
             engine.interactWithKeyboard();
+            engine.playGame();
         }
     }
 }

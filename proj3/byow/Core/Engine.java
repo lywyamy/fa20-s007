@@ -1,8 +1,16 @@
 package byow.Core;
 
+import byow.InputDemo.InputSource;
+import byow.InputDemo.KeyboardInputSource;
+import byow.InputDemo.StringInputDevice;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
+import edu.princeton.cs.introcs.StdDraw;
+
+import java.awt.*;
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -21,6 +29,9 @@ public class Engine {
     private static final int hallwayWidth = 3;
     private static final int hallwayHeightMin = 3;
     private static final int hallwayHeightMax = 12;
+    private static final int welcomePageWidth = 60;
+    private static final int welcomePageHeight = 60;
+    private static final List<Character> allowedMovements = new ArrayList<>();
 
     TERenderer ter = new TERenderer();
     public final TETile[][] myWorld = new TETile[WIDTH][HEIGHT];
@@ -28,13 +39,98 @@ public class Engine {
     private double filledRatio;
     private Random rd;
     private final List<Edge> connectableEdges = new LinkedList<>();
-
+    private String seedTracker = "";
+    private String activityTracker = "";
+    private boolean hasExit = false;
+    private Point avatar;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+        displayWelcomePage();
+
+        InputSource inputSource = new KeyboardInputSource();
+        while (inputSource.possibleNextInput()) {
+            char firstKey = inputSource.getNextKey();
+            if (firstKey == 'Q') { System.exit(0); }
+            else if (firstKey == 'N') {
+                /*get seed and generate a new world*/
+                StdDraw.clear(StdDraw.BLACK);
+                StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2 + 5, "Please enter a random seed and press 'S' to generate a new world.");
+                StdDraw.show();
+                StringBuilder seed = new StringBuilder();
+                while (inputSource.possibleNextInput()) {
+                    char c = inputSource.getNextKey();
+                    StdDraw.clear(StdDraw.BLACK);
+                    if (Character.isDigit(c)) { seed.append(c); }
+                    Font seedFont = new Font("Monaco", Font.PLAIN, 30);
+                    StdDraw.setFont(seedFont);
+                    StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2, seed.toString());
+                    StdDraw.show();
+                    if (Character.toUpperCase(c) == 'S') { break; }
+                }
+                String wholeSeed = 'N' + seed.toString() + 'S';
+                interactWithInputString(wholeSeed);
+                break;
+            }
+            else if (firstKey =='L') {
+                /*load the saved game from txt file */
+                interactWithInputString(readGameState());
+                break;
+            }
+            else {
+                Font warningFont = new Font("Monaco", Font.PLAIN, 20);
+                StdDraw.setFont(warningFont);
+                StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2 - 20, "Please press 'N', 'L' or 'Q'");
+                StdDraw.show();
+            }
+        }
+    }
+
+    private String readGameState() {
+        String gameString = null;
+        try {
+            URL path = Engine.class.getResource("gameState.txt");
+            File gameState = new File(path.getFile());
+            Scanner myReader = new Scanner(gameState);
+            if (!myReader.hasNextLine()) {
+                System.exit(0);
+            } else {
+                gameString = myReader.nextLine();
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Game State File Not Found.");
+            e.printStackTrace();
+        }
+        return gameString;
+    }
+
+    private void displayWelcomePage() {
+        setCanvas();
+        Font headerFont = new Font("Monaco", Font.BOLD, 50);
+        StdDraw.setFont(headerFont);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.clear(StdDraw.BLACK);
+        StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight - 15, "CS61B: THE GAME");
+        Font menuFont = new Font("Monaco", Font.PLAIN, 20);
+        StdDraw.setFont(menuFont);
+        StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2, "New Game (N)");
+        StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2 - 5, "Load Game (L)");
+        StdDraw.text((double) welcomePageWidth / 2, (double) welcomePageHeight / 2 - 10, "Quit (Q)");
+        StdDraw.show();
+    }
+
+    /* Sets up StdDraw so that it has a width by height grid of 16 by 16 squares as its canvas
+     * Also sets up the scale so the top left is (0,0) and the bottom right is (width, height)
+     */
+    private void setCanvas() {
+        StdDraw.setCanvasSize(welcomePageWidth * 16, welcomePageHeight * 16);
+        StdDraw.setXscale(0, welcomePageWidth);
+        StdDraw.setYscale(0, welcomePageHeight);
+        StdDraw.enableDoubleBuffering();
     }
 
     /**
@@ -63,22 +159,99 @@ public class Engine {
         // passed in as an argument, and return a 2D tile representation of the
         // world that would have been drawn if the same inputs had been given
         // to interactWithKeyboard().
-        //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
-        ter.initialize(WIDTH + xBuffer, HEIGHT + yBuffer, xOff, yOff);
-        initialize();
-        int seed = getSeed(input);
-        this.rd = new Random(seed);
-        addFirstRoom();
-        while (this.filledRatio < terminationRatio) {
-            addSpace();
+        updateMovement();
+        InputSource stringInput = new StringInputDevice(input);
+        char firstChar = stringInput.getNextKey();
+        StringBuilder seedSB = new StringBuilder();
+        StringBuilder activitySB = new StringBuilder();
+        StringBuilder saveSB = new StringBuilder();
+
+        if (Character.toUpperCase(firstChar) == 'N') {
+            seedSB.append('N');
+            while (stringInput.possibleNextInput()) {
+                char c = Character.toUpperCase(stringInput.getNextKey());
+                seedSB.append(c);
+                if (c == 'S') { break; }
+            }
+
+            while (stringInput.possibleNextInput()) {
+                char c = Character.toUpperCase(stringInput.getNextKey());
+                if (c != ':') { activitySB.append(c); }
+                else {
+                    if (Character.toUpperCase(stringInput.getNextKey()) == 'Q') {
+                        saveSB.append(":Q");
+                    }
+                }
+            }
+
+            int seed = getSeed(seedSB.toString());
+            rd = new Random(seed);
+            ter.initialize(WIDTH + xBuffer, HEIGHT + yBuffer, xOff, yOff);
+            initializeMyWorld();
+
+            addFirstRoom();
+            while (filledRatio < terminationRatio) { addSpace(); }
+            while (!hasExit) { addLockedDoor(); }
+
+            initializeAvatar();
+
+        } else {
+            String loadedStringInput = readGameState();
+            interactWithInputString(loadedStringInput);
+            while (stringInput.possibleNextInput()) {
+                char c = Character.toUpperCase(stringInput.getNextKey());
+                if (c != ':') { activitySB.append(c); }
+                else {
+                    if (Character.toUpperCase(stringInput.getNextKey()) == 'Q') {
+                        saveSB.append(":Q");
+                    }
+                }
+            }
+        }
+
+        String activity = activitySB.toString();
+        String save = saveSB.toString();
+
+        for (int i = 0; i < activity.length(); i++) {
+
+            char c = activity.charAt(i);
+            if (allowedMovements.contains(c)) { move(c); }
+        }
+
+        if (save.equals(":Q")) {
+            saveThenQuit();
         }
         return myWorld;
     }
 
-    public void playGame() {
+    private void saveThenQuit() {
+        String text = seedTracker + activityTracker;
+        try {
+            URL path = Engine.class.getResource("gameState.txt");
+            File gameState = new File(path.getFile());
+            FileWriter fw = new FileWriter(gameState.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(text);
+            bw.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
+    }
 
+    private void addLockedDoor() {
+        Edge exitEdge = getEdge(rd.nextInt(connectableEdges.size()));
+        String direction = exitEdge.getDirection();
+        int x = getDoorX(exitEdge);
+        int y = getDoorY(exitEdge);
+        Point exit = new Point(x, y);
+        if (exit.getNeighbor(direction) != null
+            && getTile(exit.getNeighbor(direction)).description().equals(Tileset.NOTHING.description())) {
+            myWorld[x][y] = Tileset.LOCKED_DOOR;
+            hasExit = true;
+        }
     }
 
     /* Steps to add a random space to myWorld:
@@ -118,7 +291,6 @@ public class Engine {
             removeConnectedEdge(index);
         }
     }
-
 
     private boolean addable(List<Point> outerSpace) {
         Point lowerLeft = outerSpace.get(0);
@@ -494,9 +666,9 @@ public class Engine {
             this.y = y;
         }
 
-        public int getX() { return this.x; }
+        public int getX() { return x; }
 
-        public int getY() { return this.y; }
+        public int getY() { return y; }
 
         public Point getNeighbor(String direction) {
             int x = getX();
@@ -535,26 +707,26 @@ public class Engine {
             this.direction = direction;
         }
 
-        public int getStartX() { return this.startX; }
+        public int getStartX() { return startX; }
 
-        public int getStartY() { return this.startY; }
+        public int getStartY() { return startY; }
 
-        public int getEndX() { return this.endX; }
+        public int getEndX() { return endX; }
 
-        public int getEndY() { return this.endY; }
+        public int getEndY() { return endY; }
 
-        public String getDirection() { return this.direction; }
+        public String getDirection() { return direction; }
     }
 
-    private void updateFilledArea(int width, int height) { this.filledArea += width * height; }
+    private void updateFilledArea(int width, int height) { filledArea += width * height; }
 
-    private void updateFilledRatio() { this.filledRatio = (double) this.filledArea / (WIDTH * HEIGHT); }
+    private void updateFilledRatio() { filledRatio = (double) filledArea / (WIDTH * HEIGHT); }
 
     /* Creates a random integer generator that will be used for the entire process. */
     private int randomInt(int min, int max) { return min + rd.nextInt(max - min + 1); }
 
     /* Initializes myWorld with default NOTHING tiles. */
-    public void initialize() {
+    private void initializeMyWorld() {
         for (int i = 0; i < WIDTH; i++) {
             for (int j = 0; j < HEIGHT; j++) {
                 myWorld[i][j] = Tileset.NOTHING;
@@ -563,28 +735,116 @@ public class Engine {
     }
 
     /**
-     * Validates user input
      * @param input is in the format "N#######S" where each # is a digit and there can be an arbitrary number of #s.
      * @return the integer digits from the input as the random seed.
      */
     private int getSeed(String input) {
+
         char firstChar = input.charAt(0);
-        char lastChar = input.charAt(input.length() - 1);
-        if (Character.toLowerCase(firstChar) != 'n') { throw new IllegalArgumentException("The input must start with 'n', case insensitive."); }
-        if (Character.toLowerCase(lastChar) != 's') { throw new IllegalArgumentException("The input must end with 's', case insensitive."); }
+        if (Character.toUpperCase(firstChar) != 'N') { throw new IllegalArgumentException("The input must start with 'N', case insensitive."); }
+        else { seedTracker += 'N'; }
 
-        StringBuilder seedString = new StringBuilder();
-        for(int i = 1; i < input.length() - 1; i++) {
-            if (!Character.isDigit(input.charAt(i))) { throw new IllegalArgumentException("The input must contain only digits between 'n' and 's'."); }
-            seedString.append(input.charAt(i));
+        StringBuilder seed = new StringBuilder();
+        for (int index = 1; index < input.length() - 1; index++) {
+            char c = input.charAt(index);
+            if (!Character.isDigit(c) && Character.toUpperCase(c) != 'S') {
+                throw new IllegalArgumentException ("The input must end with 'S' (case insensitive) and contain only digits between 'n' and 's'.");
+            }
+            if (Character.toUpperCase(c) == 'S') { break ; }
+            if (Character.isDigit(c)) { seed.append(c); }
         }
-        return Integer.parseInt(seedString.toString());
+        seedTracker += seed.toString();
+        seedTracker += 'S';
+        return Integer.parseInt(seed.toString());
     }
 
-    public static void main(String[] args) {
-        Engine engine = new Engine();
-        engine.ter.initialize(WIDTH + xBuffer, HEIGHT + yBuffer, xOff, yOff);
-        engine.initialize();
-        engine.ter.renderFrame(engine.interactWithInputString("n3722s"));
+    private void displayHUD() {
+        StdDraw.setPenColor(Color.BLACK);
+        StdDraw.filledRectangle(3, HEIGHT + yBuffer * 0.5, 5, yBuffer * 0.5);
+        int x = (int) Math.floor(StdDraw.mouseX());
+        int y = (int) Math.floor(StdDraw.mouseY());
+        String description;
+        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+            description = "nothing";
+        } else {
+            description = myWorld[x][y].description();
+        }
+        StdDraw.setPenColor(Color.WHITE);
+        Font font = new Font("Monaco", Font.BOLD, 15);
+        StdDraw.setFont(font);
+        StdDraw.text(3, HEIGHT + yBuffer*0.5, description);
+        StdDraw.show();
     }
+
+    private void initializeAvatar() {
+        for (int i = 0; i < WIDTH; i++) {
+            for (int j = 0; j < HEIGHT; j++) {
+                if (myWorld[i][j].description().equals(Tileset.FLOOR.description())) {
+                    myWorld[i][j] = Tileset.AVATAR;
+                    avatar = new Point(i, j);
+                    return;
+                }
+            }
+        }
+    }
+
+    /* Get neighbor at moveDirection.
+     * If floor, move. Record movement by adding it to the activity tracker.
+     * If exitDoor, game is won and exit.
+     * When move completes, display the new world.
+     */
+    public void move(char moveDirection) {
+        String moveDirectionString = moveDirectionFinder(moveDirection);
+        if (getTile(avatar.getNeighbor(moveDirectionString)).description().equals(Tileset.FLOOR.description())) {
+            myWorld[avatar.getX()][avatar.getY()] = Tileset.FLOOR;
+            avatar = avatar.getNeighbor(moveDirectionString);
+            myWorld[avatar.getX()][avatar.getY()] = Tileset.AVATAR;
+            activityTracker += moveDirection;
+            ter.renderFrame(myWorld);
+        }
+        if (getTile(avatar.getNeighbor(moveDirectionString)).description().equals(Tileset.LOCKED_DOOR.description())) {
+            System.out.println("You Won!");
+            System.exit(0);
+        }
+    }
+
+    private String moveDirectionFinder(char moveDirection){
+        return switch (moveDirection) {
+            case 'A' -> "west";
+            case 'W' -> "north";
+            case 'S' -> "south";
+            case 'D' -> "east";
+            default -> throw new IllegalArgumentException("Only accept key 'A', 'W', 'S' and 'D'.");
+        };
+    }
+
+    private void updateMovement() {
+        allowedMovements.add('A');
+        allowedMovements.add('S');
+        allowedMovements.add('W');
+        allowedMovements.add('D');
+    }
+
+
+    public void playGame() {
+        ter.renderFrame(myWorld);
+        boolean stageForExit = false;
+        while (true) {
+            displayHUD();
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+                if (allowedMovements.contains(c)) {
+                    move(c);
+                    stageForExit = false;
+                } else if (c == ':') {
+                    stageForExit = true;
+                } else if (c == 'Q' && stageForExit) {
+                    saveThenQuit();
+                } else {
+                    stageForExit = false;
+                }
+            }
+        }
+    }
+
 }
